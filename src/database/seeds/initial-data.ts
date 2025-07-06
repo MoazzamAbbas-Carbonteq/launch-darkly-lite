@@ -1,16 +1,16 @@
-import { AppDataSource } from "../data-source";
-import { User } from "../../entities/User";
-import { FeatureFlag } from "../../entities/FeatureFlag";
-import { FlagRule } from "../../entities/FlagRule";
-import { FlagCondition } from "../../entities/FlagCondition";
-import { UserRole, RuleType, ConditionOperator } from "../../types";
+import { AppDataSource } from "../DataSource.config";
+import { UserModel } from "../../models/User.model";
+import { FeatureFlagModel } from "../../models/FeatureFlag.model";
+import { FlagRuleModel } from "../../models/FlagRule.model";
+import { FlagConditionModel } from "../../models/FlagCondition.model";
+import { UserRole, RuleType, ConditionOperator } from "../../types/Api.types";
 import bcrypt from "bcryptjs";
 
 export async function seedInitialData() {
-  const userRepository = AppDataSource.getRepository(User);
-  const featureFlagRepository = AppDataSource.getRepository(FeatureFlag);
-  const flagRuleRepository = AppDataSource.getRepository(FlagRule);
-  const flagConditionRepository = AppDataSource.getRepository(FlagCondition);
+  const userRepository = AppDataSource.getRepository(UserModel);
+  const featureFlagRepository = AppDataSource.getRepository(FeatureFlagModel);
+  const flagRuleRepository = AppDataSource.getRepository(FlagRuleModel);
+  const flagConditionRepository = AppDataSource.getRepository(FlagConditionModel);
 
   // Create admin user
   const existingAdmin = await userRepository.findOne({ where: { email: "admin@example.com" } });

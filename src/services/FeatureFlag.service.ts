@@ -1,15 +1,17 @@
 import { Effect, pipe } from 'effect';
-import type { 
+import { 
   FeatureFlag, 
-  FlagRule, 
-  FlagCondition, 
+  CreateFlagRequest, 
+  UpdateFlagRequest, 
   EvaluateFlagRequest 
-} from '../types';
+} from '../types/Api.types';
 import { 
   RuleType, 
   ConditionOperator,
+  FlagRule, 
+  FlagCondition,
   UserRole
-} from '../types';
+} from '../types/Api.types';
 
 // Mock feature flags database (in a real app, this would be a database)
 const mockFlags: FeatureFlag[] = [

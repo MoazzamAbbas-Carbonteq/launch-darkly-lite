@@ -92,6 +92,19 @@ npm run typeorm migration:show
 
 ## API Documentation 📚
 
+### Interactive Documentation
+
+Visit the **Swagger UI** for interactive API documentation:
+- **Local Development**: `http://localhost:3000/docs`
+- **Raw OpenAPI Spec**: `http://localhost:3000/api/openapi.json`
+
+The documentation includes:
+- Complete API reference with examples
+- Authentication flows
+- Request/response schemas
+- Error handling details
+- Try-it-out functionality
+
 ### Authentication Endpoints
 
 #### POST `/api/auth/login`

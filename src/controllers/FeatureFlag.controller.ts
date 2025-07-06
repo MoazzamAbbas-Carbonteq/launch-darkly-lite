@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { Effect, pipe } from 'effect';
+import type { CreateFlagRequest, UpdateFlagRequest, EvaluateFlagRequest, FeatureFlag as FeatureFlagType } from '../types/Api.types';
 import { 
   evaluateFlag, 
   getAllFlags, 
@@ -8,7 +9,6 @@ import {
   updateFlag, 
   deleteFlag 
 } from '../services/FeatureFlag.service';
-import type { CreateFlagRequest, UpdateFlagRequest, EvaluateFlagRequest, FeatureFlag } from '../types';
 
 // Basic validation function
 const validateCreateFlagRequest = (body: any): CreateFlagRequest => {
@@ -151,7 +151,7 @@ export const updateExistingFlag = async (req: Request, res: Response): Promise<v
             id: rule.id || `rule_${Date.now()}_${index}`
           }));
         }
-        return body as Partial<FeatureFlag>;
+        return body as Partial<FeatureFlagType>;
       },
       catch: () => new Error('Invalid request body'),
     }),

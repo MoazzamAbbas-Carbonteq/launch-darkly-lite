@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from "typeorm";
 
 @Entity("flags")
-export class Flag {
+export class FlagModel {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 

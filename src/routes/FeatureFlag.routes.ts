@@ -2,18 +2,15 @@ import { Router } from 'express';
 import { 
   getFlags, 
   getFlag, 
+  createNewFlag,
   updateExistingFlag, 
   deleteExistingFlag, 
   evaluateFeatureFlag 
 } from '../controllers/FeatureFlag.controller';
 import { authenticateJwt, requireRole } from '../middleware/Authentication.middleware';
-import { UserRole } from '../types';
-import { FlagController } from '../controllers/Flag.controller';
+import { UserRole } from '../types/Api.types';
 
 const router = Router();
-
-// Instantiate controller using Effect-TS DI
-const flagController = new FlagController();
 
 // Public route for flag evaluation
 router.post('/evaluate/:key', evaluateFeatureFlag);
@@ -26,7 +23,7 @@ router.get('/', authenticateJwt, getFlags);
 router.get('/:key', authenticateJwt, getFlag);
 
 // Create new flag (admin only)
-router.post('/', authenticateJwt, requireRole(UserRole.ADMIN), flagController.createFlag.bind(flagController));
+router.post('/', authenticateJwt, requireRole(UserRole.ADMIN), createNewFlag);
 
 // Update flag (admin only)
 router.put('/:id', authenticateJwt, requireRole(UserRole.ADMIN), updateExistingFlag);

@@ -1,11 +1,11 @@
 import "reflect-metadata";
 import { DataSource } from "typeorm";
-import { config } from "../config";
-import { User } from "../entities/User.entity";
-import { Flag } from "../entities/Flag.entity";
-import { FeatureFlag } from "../entities/FeatureFlag.entity";
-import { FlagRule } from "../entities/FlagRule.entity";
-import { FlagCondition } from "../entities/FlagCondition.entity";
+import { config } from "../config/Server.config";
+import { UserModel } from "../models/User.model";
+import { FlagModel } from "../models/Flag.model";
+import { FeatureFlagModel } from "../models/FeatureFlag.model";
+import { FlagRuleModel } from "../models/FlagRule.model";
+import { FlagConditionModel } from "../models/FlagCondition.model";
 
 export const AppDataSource = new DataSource({
   type: "postgres",
@@ -16,7 +16,11 @@ export const AppDataSource = new DataSource({
   database: config.DB_NAME,
   synchronize: config.nodeEnv === "development", // Only in development
   logging: config.nodeEnv === "development",
-  entities: [User, Flag, FeatureFlag, FlagRule, FlagCondition],
-  migrations: ["src/database/migrations/*.ts"],
-  subscribers: ["src/database/subscribers/*.ts"],
+  entities: [UserModel, FlagModel, FeatureFlagModel, FlagRuleModel, FlagConditionModel],
+  migrations: config.nodeEnv === "development" 
+    ? ["src/database/migrations/*.ts"]
+    : ["dist/database/migrations/*.js"],
+  subscribers: config.nodeEnv === "development"
+    ? ["src/database/subscribers/*.ts"]
+    : ["dist/database/subscribers/*.js"],
 }); 

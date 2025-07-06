@@ -1,0 +1,1132 @@
+openapi: 3.0.3
+info:
+  title: LaunchDarkly Lite API
+  description: |
+    A lightweight feature flag management system built with Effect.js and functional programming principles.
+    
+    ## Features
+    - User authentication and authorization
+    - Feature flag management (CRUD operations)
+    - Real-time flag evaluation
+    - Role-based access control
+    - Audit logging
+    
+    ## Authentication
+    This API uses JWT (JSON Web Tokens) for authentication. Include the token in the Authorization header:
+    ```
+    Authorization: Bearer <your-jwt-token>
+    ```
+    
+    ## Roles
+    - **Admin**: Full access to all endpoints
+    - **User**: Limited access to flag evaluation and profile management
+    
+    ## Error Handling
+    All endpoints return consistent error responses with proper HTTP status codes.
+    
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@launchdarkly-lite.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:3000/api
+    description: Development server
+  - url: https://api.launchdarkly-lite.com/api
+    description: Production server
+
+tags:
+  - name: Authentication
+    description: User authentication and profile management
+  - name: Feature Flags
+    description: Feature flag management and evaluation
+  - name: Users
+    description: User management operations (Admin only)
+
+paths:
+  # Authentication Endpoints
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User Login
+      description: |
+        Authenticate a user with email and password.
+        Returns a JWT token for subsequent API calls.
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            examples:
+              admin:
+                summary: Admin login
+                value:
+                  email: admin@example.com
+                  password: password123
+              user:
+                summary: Regular user login
+                value:
+                  email: user@example.com
+                  password: password123
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AuthResponse'
+              examples:
+                success:
+                  summary: Successful login
+                  value:
+                    success: true
+                    data:
+                      user:
+                        id: "1"
+                        email: admin@example.com
+                        name: Admin User
+                        role: admin
+                        createdAt: "2024-01-01T00:00:00.000Z"
+                        updatedAt: "2024-01-01T00:00:00.000Z"
+                      token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    message: "Login successful"
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalid_credentials:
+                  summary: Invalid email or password
+                  value:
+                    success: false
+                    error: "Invalid email or password"
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: User Registration
+      description: |
+        Register a new user account.
+        New users are assigned the 'user' role by default.
+      operationId: register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            examples:
+              new_user:
+                summary: New user registration
+                value:
+                  email: newuser@example.com
+                  password: securepassword123
+                  name: John Doe
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Invalid request data or user already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: User Logout
+      description: |
+        Logout the current user. 
+        Note: This is a client-side operation as JWT tokens are stateless.
+      operationId: logout
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              examples:
+                success:
+                  summary: Successful logout
+                  value:
+                    success: true
+                    message: "Logout successful"
+
+  /auth/profile:
+    get:
+      tags:
+        - Authentication
+      summary: Get User Profile
+      description: |
+        Retrieve the authenticated user's profile information.
+        Requires a valid JWT token.
+      operationId: getProfile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized - Invalid or missing token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # Feature Flag Endpoints
+  /flags:
+    get:
+      tags:
+        - Feature Flags
+      summary: Get All Feature Flags
+      description: |
+        Retrieve all feature flags in the system.
+        Requires authentication.
+      operationId: getFlags
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Feature flags retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/FeatureFlag'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags:
+        - Feature Flags
+      summary: Create Feature Flag
+      description: |
+        Create a new feature flag.
+        Requires admin privileges.
+      operationId: createFlag
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFlagRequest'
+            examples:
+              simple_flag:
+                summary: Simple boolean flag
+                value:
+                  key: "new-checkout-flow"
+                  name: "New Checkout Flow"
+                  description: "Enable the new checkout flow for users"
+                  enabled: true
+                  defaultValue: false
+              complex_flag:
+                summary: Flag with rules
+                value:
+                  key: "premium-features"
+                  name: "Premium Features"
+                  description: "Enable premium features for specific users"
+                  enabled: true
+                  defaultValue: false
+                  rules:
+                    - type: "user_id"
+                      conditions:
+                        - field: "userId"
+                          operator: "in"
+                          value: ["user1", "user2"]
+                      value: true
+                      priority: 1
+                    - type: "role"
+                      conditions:
+                        - field: "userRole"
+                          operator: "equals"
+                          value: "admin"
+                      value: true
+                      priority: 2
+      responses:
+        '201':
+          description: Feature flag created successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/FeatureFlag'
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Flag with this key already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Insufficient permissions (Admin required)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /flags/{key}:
+    get:
+      tags:
+        - Feature Flags
+      summary: Get Feature Flag by Key
+      description: |
+        Retrieve a specific feature flag by its key.
+        Requires authentication.
+      operationId: getFlag
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: key
+          in: path
+          required: true
+          description: The unique key of the feature flag
+          schema:
+            type: string
+          example: "new-checkout-flow"
+      responses:
+        '200':
+          description: Feature flag retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/FeatureFlag'
+        '404':
+          description: Feature flag not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /flags/{id}:
+    put:
+      tags:
+        - Feature Flags
+      summary: Update Feature Flag
+      description: |
+        Update an existing feature flag.
+        Requires admin privileges.
+      operationId: updateFlag
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique ID of the feature flag
+          schema:
+            type: string
+          example: "flag-123"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateFlagRequest'
+            examples:
+              toggle_flag:
+                summary: Toggle flag status
+                value:
+                  enabled: false
+              update_rules:
+                summary: Update flag rules
+                value:
+                  rules:
+                    - type: "percentage"
+                      conditions:
+                        - field: "percentage"
+                          operator: "less_than"
+                          value: 50
+                      value: true
+                      priority: 1
+      responses:
+        '200':
+          description: Feature flag updated successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/FeatureFlag'
+        '404':
+          description: Feature flag not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Insufficient permissions (Admin required)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Feature Flags
+      summary: Delete Feature Flag
+      description: |
+        Delete a feature flag permanently.
+        Requires admin privileges.
+      operationId: deleteFlag
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique ID of the feature flag
+          schema:
+            type: string
+          example: "flag-123"
+      responses:
+        '200':
+          description: Feature flag deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              examples:
+                success:
+                  summary: Successful deletion
+                  value:
+                    success: true
+                    message: "Feature flag deleted successfully"
+        '404':
+          description: Feature flag not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Insufficient permissions (Admin required)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /flags/evaluate/{key}:
+    post:
+      tags:
+        - Feature Flags
+      summary: Evaluate Feature Flag
+      description: |
+        Evaluate a feature flag for a specific user context.
+        This endpoint is public and doesn't require authentication.
+        Returns true/false based on the flag's configuration and rules.
+      operationId: evaluateFlag
+      parameters:
+        - name: key
+          in: path
+          required: true
+          description: The unique key of the feature flag to evaluate
+          schema:
+            type: string
+          example: "new-checkout-flow"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluateFlagRequest'
+            examples:
+              user_context:
+                summary: User context evaluation
+                value:
+                  userId: "user123"
+                  userEmail: "user@example.com"
+                  userRole: "user"
+                  attributes:
+                    plan: "premium"
+                    country: "US"
+              minimal_context:
+                summary: Minimal context
+                value:
+                  userId: "user456"
+      responses:
+        '200':
+          description: Flag evaluation successful
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          flagKey:
+                            type: string
+                            description: The evaluated flag key
+                          enabled:
+                            type: boolean
+                            description: The evaluation result
+                        required:
+                          - flagKey
+                          - enabled
+              examples:
+                enabled:
+                  summary: Flag enabled for user
+                  value:
+                    success: true
+                    data:
+                      flagKey: "new-checkout-flow"
+                      enabled: true
+                disabled:
+                  summary: Flag disabled for user
+                  value:
+                    success: true
+                    data:
+                      flagKey: "new-checkout-flow"
+                      enabled: false
+        '404':
+          description: Feature flag not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # User Management Endpoints
+  /users:
+    post:
+      tags:
+        - Users
+      summary: Create User
+      description: |
+        Create a new user account.
+        This endpoint demonstrates the functional approach with Effect.js.
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+            examples:
+              new_user:
+                summary: Create new user
+                value:
+                  email: "newuser@example.com"
+                  password: "securepassword123"
+                  name: "Jane Doe"
+                  role: "user"
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Invalid request data or user already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /users/{id}:
+    get:
+      tags:
+        - Users
+      summary: Get User by ID
+      description: |
+        Retrieve a specific user by their ID.
+        Demonstrates functional repository pattern with Effect.js.
+      operationId: getUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique ID of the user
+          schema:
+            type: string
+          example: "user-123"
+      responses:
+        '200':
+          description: User retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UserResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token for authentication
+
+  schemas:
+    # Base Response Types
+    ApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indicates if the request was successful
+        message:
+          type: string
+          description: Optional message providing additional context
+      required:
+        - success
+      example:
+        success: true
+        message: "Operation completed successfully"
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          description: Error message describing what went wrong
+      required:
+        - success
+        - error
+      example:
+        success: false
+        error: "Invalid request data"
+
+    # User Types
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique user identifier
+        email:
+          type: string
+          format: email
+          description: User's email address
+        name:
+          type: string
+          description: User's full name
+        role:
+          $ref: '#/components/schemas/UserRole'
+        createdAt:
+          type: string
+          format: date-time
+          description: User creation timestamp
+        updatedAt:
+          type: string
+          format: date-time
+          description: User last update timestamp
+      required:
+        - id
+        - email
+        - name
+        - role
+        - createdAt
+        - updatedAt
+      example:
+        id: "user-123"
+        email: "user@example.com"
+        name: "John Doe"
+        role: "user"
+        createdAt: "2024-01-01T00:00:00.000Z"
+        updatedAt: "2024-01-01T00:00:00.000Z"
+
+    UserRole:
+      type: string
+      enum:
+        - admin
+        - user
+      description: User role determining access permissions
+      example: "user"
+
+    # Authentication Types
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          description: User's email address
+        password:
+          type: string
+          description: User's password
+      required:
+        - email
+        - password
+      example:
+        email: "user@example.com"
+        password: "password123"
+
+    RegisterRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          description: User's email address
+        password:
+          type: string
+          minLength: 8
+          description: User's password (minimum 8 characters)
+        name:
+          type: string
+          minLength: 2
+          description: User's full name
+      required:
+        - email
+        - password
+        - name
+      example:
+        email: "newuser@example.com"
+        password: "securepassword123"
+        name: "Jane Doe"
+
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        token:
+          type: string
+          description: JWT token for authentication
+      required:
+        - user
+        - token
+      example:
+        user:
+          id: "user-123"
+          email: "user@example.com"
+          name: "John Doe"
+          role: "user"
+          createdAt: "2024-01-01T00:00:00.000Z"
+          updatedAt: "2024-01-01T00:00:00.000Z"
+        token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    # Feature Flag Types
+    FeatureFlag:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique flag identifier
+        key:
+          type: string
+          description: Unique flag key used for evaluation
+        name:
+          type: string
+          description: Human-readable flag name
+        description:
+          type: string
+          description: Optional flag description
+        enabled:
+          type: boolean
+          description: Whether the flag is enabled
+        defaultValue:
+          type: boolean
+          description: Default value when no rules match
+        rules:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlagRule'
+          description: Rules for conditional flag evaluation
+        createdBy:
+          type: string
+          description: ID of the user who created the flag
+        createdAt:
+          type: string
+          format: date-time
+          description: Flag creation timestamp
+        updatedAt:
+          type: string
+          format: date-time
+          description: Flag last update timestamp
+        expiresAt:
+          type: string
+          format: date-time
+          description: Optional flag expiration timestamp
+      required:
+        - id
+        - key
+        - name
+        - enabled
+        - defaultValue
+        - rules
+        - createdBy
+        - createdAt
+        - updatedAt
+      example:
+        id: "flag-123"
+        key: "new-checkout-flow"
+        name: "New Checkout Flow"
+        description: "Enable the new checkout flow for users"
+        enabled: true
+        defaultValue: false
+        rules: []
+        createdBy: "admin-123"
+        createdAt: "2024-01-01T00:00:00.000Z"
+        updatedAt: "2024-01-01T00:00:00.000Z"
+
+    FlagRule:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique rule identifier
+        type:
+          $ref: '#/components/schemas/RuleType'
+        conditions:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlagCondition'
+          description: Conditions that must be met for this rule
+        value:
+          type: boolean
+          description: Value to return when rule conditions are met
+        priority:
+          type: integer
+          description: Rule priority (lower numbers = higher priority)
+      required:
+        - id
+        - type
+        - conditions
+        - value
+        - priority
+      example:
+        id: "rule-123"
+        type: "user_id"
+        conditions:
+          - field: "userId"
+            operator: "equals"
+            value: "user123"
+        value: true
+        priority: 1
+
+    RuleType:
+      type: string
+      enum:
+        - user_id
+        - email
+        - role
+        - percentage
+        - custom_attribute
+      description: Type of rule for flag evaluation
+      example: "user_id"
+
+    FlagCondition:
+      type: object
+      properties:
+        field:
+          type: string
+          description: Field to evaluate
+        operator:
+          $ref: '#/components/schemas/ConditionOperator'
+        value:
+          oneOf:
+            - type: string
+            - type: number
+            - type: boolean
+          description: Value to compare against
+      required:
+        - field
+        - operator
+        - value
+      example:
+        field: "userId"
+        operator: "equals"
+        value: "user123"
+
+    ConditionOperator:
+      type: string
+      enum:
+        - equals
+        - not_equals
+        - contains
+        - not_contains
+        - greater_than
+        - less_than
+        - in
+        - not_in
+      description: Operator for condition evaluation
+      example: "equals"
+
+    # Request Types
+    CreateFlagRequest:
+      type: object
+      properties:
+        key:
+          type: string
+          description: Unique flag key
+        name:
+          type: string
+          description: Human-readable flag name
+        description:
+          type: string
+          description: Optional flag description
+        enabled:
+          type: boolean
+          description: Whether the flag is enabled
+        defaultValue:
+          type: boolean
+          description: Default value when no rules match
+        rules:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateFlagRule'
+          description: Rules for conditional flag evaluation
+        expiresAt:
+          type: string
+          format: date-time
+          description: Optional flag expiration timestamp
+      required:
+        - key
+        - name
+        - enabled
+        - defaultValue
+      example:
+        key: "new-feature"
+        name: "New Feature"
+        description: "Enable new feature for testing"
+        enabled: true
+        defaultValue: false
+
+    CreateFlagRule:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/RuleType'
+        conditions:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlagCondition'
+        value:
+          type: boolean
+        priority:
+          type: integer
+      required:
+        - type
+        - conditions
+        - value
+        - priority
+
+    UpdateFlagRequest:
+      type: object
+      properties:
+        key:
+          type: string
+          description: Unique flag key
+        name:
+          type: string
+          description: Human-readable flag name
+        description:
+          type: string
+          description: Optional flag description
+        enabled:
+          type: boolean
+          description: Whether the flag is enabled
+        defaultValue:
+          type: boolean
+          description: Default value when no rules match
+        rules:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateFlagRule'
+          description: Rules for conditional flag evaluation
+        expiresAt:
+          type: string
+          format: date-time
+          description: Optional flag expiration timestamp
+      description: All fields are optional for updates
+      example:
+        enabled: false
+
+    EvaluateFlagRequest:
+      type: object
+      properties:
+        userId:
+          type: string
+          description: User ID for evaluation context
+        userEmail:
+          type: string
+          format: email
+          description: User email for evaluation context
+        userRole:
+          $ref: '#/components/schemas/UserRole'
+        attributes:
+          type: object
+          additionalProperties: true
+          description: Additional attributes for rule evaluation
+      example:
+        userId: "user123"
+        userEmail: "user@example.com"
+        userRole: "user"
+        attributes:
+          plan: "premium"
+          country: "US"
+
+    # User Management Types
+    CreateUserRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          description: User's email address
+        password:
+          type: string
+          minLength: 8
+          description: User's password (minimum 8 characters)
+        name:
+          type: string
+          minLength: 2
+          description: User's full name
+        role:
+          $ref: '#/components/schemas/UserRole'
+      required:
+        - email
+        - password
+        - name
+      example:
+        email: "newuser@example.com"
+        password: "securepassword123"
+        name: "Jane Doe"
+        role: "user"
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique user identifier
+        email:
+          type: string
+          format: email
+          description: User's email address
+        name:
+          type: string
+          description: User's full name
+        role:
+          $ref: '#/components/schemas/UserRole'
+        createdAt:
+          type: string
+          format: date-time
+          description: User creation timestamp
+        updatedAt:
+          type: string
+          format: date-time
+          description: User last update timestamp
+      required:
+        - id
+        - email
+        - name
+        - role
+        - createdAt
+        - updatedAt
+      example:
+        id: "user-123"
+        email: "user@example.com"
+        name: "John Doe"
+        role: "user"
+        createdAt: "2024-01-01T00:00:00.000Z"
+        updatedAt: "2024-01-01T00:00:00.000Z" 

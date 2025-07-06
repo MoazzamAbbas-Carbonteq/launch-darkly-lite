@@ -4,12 +4,19 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import passport from 'passport';
+import swaggerUi from 'swagger-ui-express';
+import path from 'path';
 import { Effect, pipe } from 'effect';
-import { config, Config } from './config';
+import { config, Config } from './config/Server.config';
 import { AppDataSource } from './database/DataSource.config';
 import { seedInitialData } from './database/seeds/initial-data';
-import authRoutes from './routes/Authentication.routes';
 import featureFlagRoutes from './routes/FeatureFlag.routes';
+import authRoutes from './routes/Authentication.routes';
+import userRoutes from './routes/User.routes';
+
+// Load OpenAPI specification using require for better CommonJS compatibility
+const YAML = require('yamljs');
+const swaggerDocument = YAML.load(path.join(__dirname, '../openapi.yaml'));
 
 // Initialize Express app
 const app = express();
@@ -46,6 +53,23 @@ app.get('/health', (req, res) => {
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/flags', featureFlagRoutes);
+app.use('/api/users', userRoutes);
+
+// Swagger Documentation
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'LaunchDarkly Lite API Documentation',
+  swaggerOptions: {
+    docExpansion: 'none',
+    filter: true,
+    showRequestDuration: true,
+  },
+}));
+
+// Raw OpenAPI spec endpoint
+app.get('/api/openapi.json', (req, res) => {
+  res.json(swaggerDocument);
+});
 
 // 404 handler
 app.use('*', (req, res) => {
@@ -81,16 +105,24 @@ const printStartupInfoEffect = (config: Config) => Effect.sync(() => {
   console.log('');
   console.log('📋 Available endpoints:');
   console.log('  GET  /health                    - Health check');
+  console.log('  GET  /docs                      - API Documentation (Swagger UI)');
+  console.log('  GET  /api/openapi.json          - Raw OpenAPI specification');
   console.log('  POST /api/auth/login            - User login');
   console.log('  POST /api/auth/register         - User registration');
   console.log('  POST /api/auth/logout           - User logout');
   console.log('  GET  /api/auth/profile          - Get user profile (protected)');
+  console.log('  POST /api/users                 - Create new user (admin only)');
+  console.log('  GET  /api/users/:id             - Get user by ID (protected)');
   console.log('  GET  /api/flags                 - Get all flags (protected)');
   console.log('  GET  /api/flags/:key            - Get flag by key (protected)');
   console.log('  POST /api/flags                 - Create new flag (admin only)');
   console.log('  PUT  /api/flags/:id             - Update flag (admin only)');
   console.log('  DELETE /api/flags/:id           - Delete flag (admin only)');
   console.log('  POST /api/flags/evaluate/:key   - Evaluate flag (public)');
+  console.log('');
+  console.log('📚 Documentation:');
+  console.log(`  Swagger UI: http://localhost:${config.port}/docs`);
+  console.log(`  OpenAPI JSON: http://localhost:${config.port}/api/openapi.json`);
   console.log('');
   console.log('🔑 Default admin credentials:');
   console.log('  Email: admin@example.com');

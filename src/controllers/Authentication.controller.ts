@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
 import { Effect, pipe } from 'effect';
 import { generateToken } from '../middleware/Authentication.middleware';
-import type { User, AuthResponse } from '../types';
-import { UserRole } from '../types';
+import type { User, AuthResponse } from '../types/Api.types';
+import { UserRole } from '../types/Api.types';
 const bcrypt = require('bcryptjs');
-import { config } from '../config';
+import { config } from '../config/Server.config';
 
 // Mock user database (in a real app, this would be a database)
 const mockUsers: User[] = [

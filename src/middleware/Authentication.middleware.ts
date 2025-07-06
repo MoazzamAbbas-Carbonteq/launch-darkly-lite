@@ -5,8 +5,8 @@ import { Strategy as LocalStrategy } from 'passport-local';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { Effect } from 'effect';
-import { config } from '../config';
-import { User, UserRole } from '../types';
+import { config } from '../config/Server.config';
+import { User, UserRole } from '../types/Api.types';
 
 // JWT Strategy
 passport.use(
