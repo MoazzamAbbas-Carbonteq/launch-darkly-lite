@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { Effect, pipe } from 'effect';
 import { CreateUserRequestDto } from '../application/dto/User.dto';
-import { toPlainObject } from '../domain/entities/User.entity';
 import { runWithUserService, getUserService } from '../application/context/AppContext';
 
 // Helper function to get error message

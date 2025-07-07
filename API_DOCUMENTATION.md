@@ -2,10 +2,11 @@
 
 ## Overview
 
-This document provides comprehensive API documentation for the LaunchDarkly Lite feature flag management system. The API is built using **Effect.js** and **functional programming principles**, providing a robust and type-safe interface for managing feature flags and user authentication.
+This document provides comprehensive API documentation for the LaunchDarkly Lite feature flag management system. The API is built using **Effect.js**, **Clean Architecture principles**, and **functional programming patterns**, providing a robust, type-safe, and maintainable interface for managing feature flags and user authentication.
 
 ## 📋 Table of Contents
 
+- [Architecture Overview](#architecture-overview)
 - [Getting Started](#getting-started)
 - [Authentication](#authentication)
 - [API Endpoints](#api-endpoints)
@@ -13,7 +14,34 @@ This document provides comprehensive API documentation for the LaunchDarkly Lite
 - [Error Handling](#error-handling)
 - [Rate Limiting](#rate-limiting)
 - [Examples](#examples)
-- [SDKs and Tools](#sdks-and-tools)
+- [Client Generation](#client-generation)
+- [Development Tools](#development-tools)
+
+## 🏗️ Architecture Overview
+
+The API follows **Clean Architecture** principles with **Effect.js** for functional programming:
+
+### Key Architectural Patterns
+
+- **Domain-Driven Design**: Business logic is encapsulated in domain entities
+- **Repository Pattern**: Data access abstraction with Effect.js
+- **Use Cases**: Single-responsibility business operations
+- **Functional Programming**: Pure functions with Effect.js
+- **Type Safety**: Full TypeScript coverage with Effect.js types
+- **Dependency Injection**: Effect.js Context for DI
+- **Composable Error Handling**: Effect.js error composition
+
+### Layer Structure
+
+```
+Controllers (HTTP Layer)
+    ↓
+Application Services (Use Cases)
+    ↓
+Domain Layer (Business Logic)
+    ↓
+Infrastructure (Data Access)
+```
 
 ## 🚀 Getting Started
 
@@ -55,7 +83,9 @@ Authorization: Bearer <your-jwt-token>
 
 ### Token Expiration
 
-Tokens expire after 24 hours. You'll need to login again to get a new token.
+- Tokens expire after **24 hours** (configurable)
+- You'll need to login again to get a new token
+- Expired tokens will return a `401 Unauthorized` response
 
 ## 🛠 API Endpoints
 
@@ -73,18 +103,18 @@ Tokens expire after 24 hours. You'll need to login again to get a new token.
 | Method | Endpoint | Description | Auth Required | Admin Only |
 |--------|----------|-------------|---------------|------------|
 | GET | `/flags` | Get all flags | Yes | No |
-| POST | `/flags` | Create flag | Yes | Yes |
 | GET | `/flags/{key}` | Get flag by key | Yes | No |
+| POST | `/flags` | Create flag | Yes | Yes |
 | PUT | `/flags/{id}` | Update flag | Yes | Yes |
 | DELETE | `/flags/{id}` | Delete flag | Yes | Yes |
 | POST | `/flags/evaluate/{key}` | Evaluate flag | No | No |
 
 ### User Management Endpoints
 
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| POST | `/users` | Create user | No |
-| GET | `/users/{id}` | Get user by ID | No |
+| Method | Endpoint | Description | Auth Required | Admin Only |
+|--------|----------|-------------|---------------|------------|
+| POST | `/users` | Create user | Yes | Yes |
+| GET | `/users/{id}` | Get user by ID | Yes | No |
 
 ## 📖 OpenAPI Specification
 
@@ -92,23 +122,21 @@ The complete API specification is available in the `openapi.yaml` file. You can:
 
 ### View the Documentation
 
-1. **Swagger UI**: Open the `openapi.yaml` file in [Swagger Editor](https://editor.swagger.io/)
-2. **Redoc**: Use [Redoc](https://redocly.github.io/redoc/) for a different documentation format
-3. **Postman**: Import the OpenAPI spec directly into Postman
+1. **Swagger UI**: Visit `http://localhost:3000/docs` for interactive documentation
+2. **Raw Spec**: Access `http://localhost:3000/api/openapi.json` for the JSON specification
+3. **YAML File**: View the complete `openapi.yaml` file in the project root
 
-### Generate SDKs
-
-Use the OpenAPI specification to generate client SDKs:
+### Available Documentation Scripts
 
 ```bash
-# Generate JavaScript SDK
-openapi-generator-cli generate -i openapi.yaml -g javascript -o ./sdk/javascript
+# Serve API documentation locally
+npm run docs:serve
 
-# Generate Python SDK
-openapi-generator-cli generate -i openapi.yaml -g python -o ./sdk/python
+# Validate OpenAPI specification
+npm run docs:validate
 
-# Generate TypeScript SDK
-openapi-generator-cli generate -i openapi.yaml -g typescript-fetch -o ./sdk/typescript
+# Generate TypeScript client
+npm run docs:generate-client
 ```
 
 ## ⚠️ Error Handling
@@ -159,7 +187,17 @@ openapi-generator-cli generate -i openapi.yaml -g typescript-fetch -o ./sdk/type
    }
    ```
 
+4. **Permission Denied**
+   ```json
+   {
+     "success": false,
+     "error": "Admin role required for this operation"
+   }
+   ```
+
 ## 🔄 Rate Limiting
+
+Rate limiting is applied to prevent abuse:
 
 - **Authentication endpoints**: 10 requests per minute per IP
 - **Feature flag evaluation**: 1000 requests per minute per IP
@@ -183,6 +221,23 @@ curl -X POST http://localhost:3000/api/auth/register \
     "password": "securepassword123",
     "name": "John Doe"
   }'
+
+# Response
+{
+  "success": true,
+  "data": {
+    "user": {
+      "id": "uuid-here",
+      "email": "user@example.com",
+      "name": "John Doe",
+      "role": "user",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  },
+  "message": "User registered successfully"
+}
 
 # Login
 curl -X POST http://localhost:3000/api/auth/login \
@@ -218,6 +273,18 @@ curl -X POST http://localhost:3000/api/flags \
         ],
         "value": true,
         "priority": 1
+      },
+      {
+        "type": "percentage",
+        "conditions": [
+          {
+            "field": "percentage",
+            "operator": "less_than",
+            "value": "25"
+          }
+        ],
+        "value": true,
+        "priority": 2
       }
     ]
   }'
@@ -226,7 +293,7 @@ curl -X POST http://localhost:3000/api/flags \
 curl -X GET http://localhost:3000/api/flags \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 
-# Get specific flag
+# Get specific flag by key
 curl -X GET http://localhost:3000/api/flags/new-checkout-flow \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
@@ -243,105 +310,59 @@ curl -X POST http://localhost:3000/api/flags/evaluate/new-checkout-flow \
     "userRole": "user",
     "attributes": {
       "plan": "premium",
-      "country": "US"
+      "country": "US",
+      "version": "1.2.0"
     }
   }'
-```
 
-### 4. JavaScript/TypeScript Example
-
-```typescript
-// Using fetch API
-const API_BASE = 'http://localhost:3000/api';
-
-// Login and get token
-async function login(email: string, password: string) {
-  const response = await fetch(`${API_BASE}/auth/login`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ email, password }),
-  });
-  
-  const data = await response.json();
-  return data.data.token;
-}
-
-// Evaluate feature flag
-async function evaluateFlag(flagKey: string, userId: string) {
-  const response = await fetch(`${API_BASE}/flags/evaluate/${flagKey}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ userId }),
-  });
-  
-  const data = await response.json();
-  return data.data.enabled;
-}
-
-// Create feature flag (Admin only)
-async function createFlag(token: string, flagData: any) {
-  const response = await fetch(`${API_BASE}/flags`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-    body: JSON.stringify(flagData),
-  });
-  
-  return response.json();
+# Response
+{
+  "success": true,
+  "data": {
+    "flagKey": "new-checkout-flow",
+    "enabled": true,
+    "reason": "matched_rule",
+    "ruleId": "rule-uuid",
+    "value": true
+  }
 }
 ```
 
-### 5. Python Example
+### 4. User Management
 
-```python
-import requests
-import json
+```bash
+# Create a new user (Admin only)
+curl -X POST http://localhost:3000/api/users \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ADMIN_JWT_TOKEN" \
+  -d '{
+    "email": "newuser@example.com",
+    "password": "securepassword123",
+    "name": "Jane Smith",
+    "role": "user"
+  }'
 
-API_BASE = 'http://localhost:3000/api'
+# Get user profile
+curl -X GET http://localhost:3000/api/auth/profile \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
 
-def login(email, password):
-    response = requests.post(f'{API_BASE}/auth/login', json={
-        'email': email,
-        'password': password
-    })
-    return response.json()['data']['token']
-
-def evaluate_flag(flag_key, user_id):
-    response = requests.post(f'{API_BASE}/flags/evaluate/{flag_key}', json={
-        'userId': user_id
-    })
-    return response.json()['data']['enabled']
-
-def create_flag(token, flag_data):
-    headers = {'Authorization': f'Bearer {token}'}
-    response = requests.post(f'{API_BASE}/flags', json=flag_data, headers=headers)
-    return response.json()
+# Get user by ID
+curl -X GET http://localhost:3000/api/users/user-uuid-here \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-## 🛠 SDKs and Tools
+## 🔧 Client Generation
 
-### Recommended Tools
-
-1. **Postman**: Import the OpenAPI spec for easy API testing
-2. **Insomnia**: Alternative REST client
-3. **curl**: Command-line testing
-4. **HTTPie**: User-friendly command-line HTTP client
-
-### Client Libraries
-
-Generate client libraries using OpenAPI Generator:
+Generate client SDKs using OpenAPI Generator:
 
 ```bash
 # Install OpenAPI Generator
 npm install -g @openapitools/openapi-generator-cli
 
 # Generate TypeScript client
+npm run docs:generate-client
+
+# Or manually:
 openapi-generator-cli generate \
   -i openapi.yaml \
   -g typescript-fetch \
@@ -352,35 +373,185 @@ openapi-generator-cli generate \
   -i openapi.yaml \
   -g python \
   -o ./client/python
+
+# Generate other clients (Java, C#, etc.)
+openapi-generator-cli generate \
+  -i openapi.yaml \
+  -g java \
+  -o ./client/java
 ```
 
-## 🏗 Architecture Notes
+### Using Generated TypeScript Client
 
-This API is built using **functional programming principles** with **Effect.js**:
+```typescript
+import { Configuration, DefaultApi } from './client/typescript';
 
-- **Pure functions**: All business logic is implemented as pure functions
-- **Immutable data**: Domain entities are immutable
-- **Type safety**: Full TypeScript support with Effect.js types
-- **Error handling**: Composable error handling with Effect.js
-- **Dependency injection**: Functional dependency injection patterns
+const config = new Configuration({
+  basePath: 'http://localhost:3000/api',
+  accessToken: 'your-jwt-token'
+});
 
-### Key Benefits
+const api = new DefaultApi(config);
 
-1. **Predictable**: Pure functions make behavior predictable
-2. **Testable**: Easy to test with mock dependencies
-3. **Composable**: Functions can be easily composed
-4. **Type-safe**: Full TypeScript support prevents runtime errors
-5. **Maintainable**: Clear separation of concerns
+// Login
+const loginResponse = await api.login({
+  email: 'user@example.com',
+  password: 'password123'
+});
+
+// Create flag
+const flag = await api.createFlag({
+  key: 'new-feature',
+  name: 'New Feature',
+  description: 'A new feature flag',
+  enabled: true,
+  defaultValue: false
+});
+
+// Evaluate flag
+const evaluation = await api.evaluateFlag('new-feature', {
+  userId: 'user123',
+  userEmail: 'user@example.com'
+});
+```
+
+## 🛠 Development Tools
+
+### Recommended Tools
+
+1. **Postman**: Import the OpenAPI spec for easy API testing
+2. **Insomnia**: Alternative REST client with OpenAPI support
+3. **curl**: Command-line testing
+4. **HTTPie**: User-friendly command-line HTTP client
+5. **Swagger Editor**: Edit and validate OpenAPI specifications
+
+### Testing with HTTPie
+
+```bash
+# Install HTTPie
+pip install httpie
+
+# Login
+http POST localhost:3000/api/auth/login email=admin@example.com password=password123
+
+# Create flag with token
+http POST localhost:3000/api/flags \
+  Authorization:"Bearer YOUR_TOKEN" \
+  key=test-flag \
+  name="Test Flag" \
+  enabled:=true \
+  defaultValue:=false
+
+# Evaluate flag
+http POST localhost:3000/api/flags/evaluate/test-flag \
+  userId=user123 \
+  userEmail=user@example.com
+```
+
+### Development Scripts
+
+```bash
+# Start development server with hot reload
+npm run dev
+
+# Build the project
+npm run build
+
+# Run production server
+npm start
+
+# Generate API documentation
+npm run docs:serve
+
+# Validate OpenAPI specification
+npm run docs:validate
+```
+
+## 🏗 Architecture Implementation Details
+
+### Effect.js Integration
+
+The API heavily uses Effect.js for:
+
+#### Use Cases
+```typescript
+// Example use case implementation
+export const createFeatureFlagUseCase = (
+  dto: CreateFeatureFlagRequestDto,
+  featureFlagRepository: FeatureFlagRepository
+): Effect.Effect<FeatureFlagResponseDto, Error> =>
+  pipe(
+    validateCreateFeatureFlagRequest(dto),
+    Effect.flatMap((validatedDto) => featureFlagRepository.create(validatedDto)),
+    Effect.map((flag) => toFeatureFlagResponseDto(flag))
+  );
+```
+
+#### Repository Pattern
+```typescript
+// Repository interface (domain layer)
+export interface FeatureFlagRepository {
+  findById(id: string): Effect.Effect<FeatureFlagEntity | null, Error>;
+  findByKey(key: string): Effect.Effect<FeatureFlagEntity | null, Error>;
+  create(flagData: CreateFeatureFlagData): Effect.Effect<FeatureFlagEntity, Error>;
+  // ...
+}
+
+// Repository implementation (infrastructure layer)
+export const createFeatureFlagRepositoryImpl = (
+  repository: Repository<FeatureFlagModel>
+): FeatureFlagRepository => ({
+  findById: (id: string) =>
+    Effect.tryPromise({
+      try: async () => {
+        const flag = await repository.findOne({ where: { id } });
+        return flag;
+      },
+      catch: (e) => new Error(`Failed to find feature flag: ${String(e)}`),
+    }),
+  // ...
+});
+```
+
+#### Dependency Injection
+```typescript
+// Context setup
+export const AppContextLive = Layer.mergeAll(
+  UserRepositoryLive,
+  FeatureFlagRepositoryLive,
+  UserServiceLive,
+  FeatureFlagServiceLive
+);
+
+// Usage in controllers
+const result = await Effect.runPromise(
+  pipe(
+    featureFlagService.createFeatureFlag(dto),
+    Effect.provide(AppContextLive)
+  )
+);
+```
+
+### Clean Architecture Benefits
+
+1. **Testability**: Easy to test with mock dependencies
+2. **Maintainability**: Clear separation of concerns
+3. **Scalability**: Modular design allows easy extension
+4. **Type Safety**: Full TypeScript coverage with Effect.js
+5. **Error Handling**: Composable error types with Effect.js
 
 ## 📞 Support
 
-For API support, please:
+For API support and questions:
 
-1. Check this documentation first
-2. Review the OpenAPI specification
-3. Create an issue in the GitHub repository
-4. Contact support@launchdarkly-lite.com
+- **Documentation**: Check the interactive Swagger UI at `/docs`
+- **Issues**: Report issues in the project repository
+- **Examples**: Reference this documentation for implementation examples
 
-## 📄 License
+## 📚 Additional Resources
 
-This API documentation is licensed under the MIT License. 
+- [Effect.js Documentation](https://effect.website/)
+- [Clean Architecture Principles](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
+- [OpenAPI Specification](https://swagger.io/specification/)
+- [TypeORM Documentation](https://typeorm.io/)
+- [Express.js Documentation](https://expressjs.com/) 

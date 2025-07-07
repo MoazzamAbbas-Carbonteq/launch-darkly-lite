@@ -1,19 +1,56 @@
 # Launch Darkly Lite 🚀
 
-A lightweight, production-ready feature flag server built with **TypeScript**, **Express**, **Effect.js**, **TypeORM**, and **Passport**. This server provides a simple yet powerful API for managing feature flags with advanced targeting rules and user authentication.
+A lightweight, production-ready feature flag server built with **TypeScript**, **Express**, **Effect.js**, **TypeORM**, and **Passport**. This server provides a robust, type-safe API for managing feature flags with advanced targeting rules, user authentication, and clean architecture principles.
 
 ## Features ✨
 
-- 🎯 **Advanced Feature Flags** with targeting rules
-- 🔐 **JWT Authentication** with Passport.js  
+- 🎯 **Advanced Feature Flags** with complex targeting rules and conditions
+- 🔐 **JWT Authentication** with Passport.js integration
 - 🛡️ **Role-based Access Control** (Admin/User)
-- 🗄️ **PostgreSQL Database** with TypeORM
-- ⚡ **Effect.js** for functional programming and error handling
+- 🗄️ **PostgreSQL Database** with TypeORM and migrations
+- ⚡ **Effect.js** for functional programming, type safety, and error handling
+- 🏗️ **Clean Architecture** with domain-driven design principles
 - 🔒 **Security-first** with Helmet, CORS, and bcrypt
 - 📝 **Request Logging** with Morgan
-- 🏗️ **TypeScript** for type safety
-- 🔄 **Database Migrations** with TypeORM CLI
-- 🌱 **Automatic Database Seeding**
+- 🔄 **Database Migrations** and automated seeding
+- 📚 **OpenAPI/Swagger Documentation** with interactive UI
+- 🐳 **Docker Support** for easy deployment
+- 🧪 **Type-safe** with full TypeScript coverage
+
+## Architecture 🏗️
+
+The project follows **Clean Architecture** principles with **Effect.js** for functional programming:
+
+```
+src/
+├── application/         # Application layer
+│   ├── context/         # Effect.js context and dependency injection
+│   ├── dto/             # Data transfer objects with validation
+│   ├── services/        # Application services
+│   └── use-cases/       # Business use cases
+├── domain/              # Domain layer (business logic)
+│   ├── entities/        # Domain entities with validation
+│   └── repositories/    # Repository interfaces
+├── infrastructure/      # Infrastructure layer
+│   └── repositories/    # Repository implementations
+├── controllers/         # Express controllers (interface adapters)
+├── routes/              # API route definitions
+├── middleware/          # Express middleware
+├── models/              # TypeORM entities
+├── database/            # Database configuration and migrations
+├── types/               # TypeScript type definitions
+├── config/              # Configuration management
+└── index.ts             # Application entry point
+```
+
+### Key Architectural Benefits
+
+- **Pure Functions**: All business logic is implemented as pure functions
+- **Immutable Data**: Domain entities are immutable
+- **Type Safety**: Full TypeScript support with Effect.js types
+- **Composable Error Handling**: Effect.js provides robust error composition
+- **Dependency Injection**: Functional dependency injection with Effect.js Context
+- **Testability**: Easy to test with mock dependencies
 
 ## Quick Start 🚀
 
@@ -44,11 +81,14 @@ cp env.example .env
 
 4. **Set up PostgreSQL database**
 ```bash
-# Create database
+# Option 1: Using Docker Compose (recommended)
+docker-compose up -d postgres
+
+# Option 2: Local PostgreSQL
 createdb launch_darkly_lite
 
 # Run migrations (if needed)
-npm run typeorm migration:run
+npm run migration:run
 ```
 
 5. **Start the development server**
@@ -58,45 +98,58 @@ npm run dev
 
 The server will start on `http://localhost:3000` with automatic database setup and seeding.
 
-## Database Setup 🗄️
-
-The application uses **TypeORM** with **PostgreSQL**. The database schema includes:
-
-- `users` - User accounts with roles
-- `flags` - Simple feature flags  
-- `feature_flags` - Advanced feature flags with rules
-- `flag_rules` - Targeting rules for feature flags
-- `flag_conditions` - Conditions for targeting rules
-
-### Environment Variables
+## Environment Configuration 🔧
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql://postgres:password@localhost:5432/launch_darkly_lite` |
+| `PORT` | Server port | `3000` |
+| `NODE_ENV` | Environment | `development` |
+| `JWT_SECRET` | JWT signing secret | Required |
+| `JWT_EXPIRES_IN` | JWT expiration | `24h` |
+| `DB_HOST` | PostgreSQL host | `localhost` |
+| `DB_PORT` | PostgreSQL port | `5432` |
+| `DB_USERNAME` | Database username | `test` |
+| `DB_PASSWORD` | Database password | `test` |
+| `DB_NAME` | Database name | `launch_darkly_lite` |
+| `DEFAULT_FLAG_TTL` | Default flag TTL in seconds | `3600` |
+| `MAX_FLAGS_PER_USER` | Maximum flags per user | `100` |
+| `BCRYPT_ROUNDS` | Password hashing rounds | `12` |
+| `CORS_ORIGIN` | CORS allowed origin | `http://localhost:3000` |
+| `LOG_LEVEL` | Logging level | `info` |
 
-### TypeORM CLI Commands
+## Available Scripts 📜
 
 ```bash
-# Generate migration
-npm run typeorm migration:generate -- -n MigrationName
+# Development
+npm run dev          # Start development server with hot reload
+npm run build        # Build TypeScript to JavaScript
+npm run start        # Start production server
+npm run clean        # Clean build directory
 
-# Run migrations  
-npm run typeorm migration:run
+# Database Operations
+npm run migration:generate -- MigrationName  # Generate new migration
+npm run migration:run                        # Run pending migrations
+npm run migration:revert                     # Revert last migration
+npm run migration:show                       # Show migration status
+npm run schema:sync                          # Sync schema (dev only)
+npm run schema:drop                          # Drop schema (destructive)
+npm run seed:run                             # Run database seeds
 
-# Revert migration
-npm run typeorm migration:revert
+# Documentation
+npm run docs:serve                           # Serve API documentation
+npm run docs:validate                        # Validate OpenAPI spec
+npm run docs:generate-client                 # Generate TypeScript client
 
-# Show migrations
-npm run typeorm migration:show
+# Architecture
+npm run migrate:clean-architecture           # Migrate to clean architecture
 ```
 
 ## API Documentation 📚
 
 ### Interactive Documentation
 
-Visit the **Swagger UI** for interactive API documentation:
-- **Local Development**: `http://localhost:3000/docs`
-- **Raw OpenAPI Spec**: `http://localhost:3000/api/openapi.json`
+- **Swagger UI**: `http://localhost:3000/docs`
+- **OpenAPI Spec**: `http://localhost:3000/api/openapi.json`
 
 The documentation includes:
 - Complete API reference with examples
@@ -105,130 +158,24 @@ The documentation includes:
 - Error handling details
 - Try-it-out functionality
 
-### Authentication Endpoints
+### Quick API Overview
 
-#### POST `/api/auth/login`
-Login with email and password.
+| Method | Endpoint | Description | Auth | Role |
+|--------|----------|-------------|------|------|
+| POST | `/api/auth/login` | User login | No | - |
+| POST | `/api/auth/register` | User registration | No | - |
+| POST | `/api/auth/logout` | User logout | No | - |
+| GET | `/api/auth/profile` | Get user profile | Yes | - |
+| GET | `/api/flags` | Get all flags | Yes | - |
+| GET | `/api/flags/:key` | Get flag by key | Yes | - |
+| POST | `/api/flags` | Create flag | Yes | Admin |
+| PUT | `/api/flags/:id` | Update flag | Yes | Admin |
+| DELETE | `/api/flags/:id` | Delete flag | Yes | Admin |
+| POST | `/api/flags/evaluate/:key` | Evaluate flag | No | - |
+| POST | `/api/users` | Create user | Yes | Admin |
+| GET | `/api/users/:id` | Get user by ID | Yes | - |
 
-**Request Body:**
-```json
-{
-  "email": "admin@example.com",
-  "password": "password123"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "user": {
-      "id": "1",
-      "email": "admin@example.com",
-      "name": "Admin User",
-      "role": "admin",
-      "createdAt": "2024-01-01T00:00:00.000Z",
-      "updatedAt": "2024-01-01T00:00:00.000Z"
-    },
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-  },
-  "message": "Login successful"
-}
-```
-
-#### POST `/api/auth/register`
-Register a new user.
-
-**Request Body:**
-```json
-{
-  "email": "user@example.com",
-  "password": "password123",
-  "name": "John Doe"
-}
-```
-
-#### GET `/api/auth/profile` (Protected)
-Get current user profile.
-
-**Headers:**
-```
-Authorization: Bearer <jwt-token>
-```
-
-### Feature Flag Endpoints
-
-#### GET `/api/flags` (Protected)
-Get all feature flags.
-
-#### GET `/api/flags/:key` (Protected)
-Get a specific feature flag by key.
-
-#### POST `/api/flags` (Admin Only)
-Create a new feature flag.
-
-**Request Body:**
-```json
-{
-  "key": "new-feature",
-  "name": "New Feature",
-  "description": "A new feature for testing",
-  "enabled": true,
-  "defaultValue": false,
-  "rules": [
-    {
-      "type": "user_id",
-      "conditions": [
-        {
-          "field": "userId",
-          "operator": "equals",
-          "value": "1"
-        }
-      ],
-      "value": true,
-      "priority": 1
-    }
-  ]
-}
-```
-
-#### PUT `/api/flags/:id` (Admin Only)
-Update an existing feature flag.
-
-#### DELETE `/api/flags/:id` (Admin Only)
-Delete a feature flag.
-
-#### POST `/api/flags/evaluate/:key` (Public)
-Evaluate a feature flag for a user.
-
-**Request Body:**
-```json
-{
-  "userId": "1",
-  "userEmail": "user@example.com",
-  "userRole": "user",
-  "attributes": {
-    "plan": "premium",
-    "region": "us-east-1"
-  }
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "flagKey": "new-feature",
-    "enabled": true
-  }
-}
-```
-
-## Feature Flag Rules 🎯
-
-The system supports various rule types and conditions:
+## Feature Flag System 🎯
 
 ### Rule Types
 - `user_id`: Match specific user IDs
@@ -247,18 +194,22 @@ The system supports various rule types and conditions:
 - `in`: Value in array
 - `not_in`: Value not in array
 
-### Example Rules
-
+### Example Flag Configuration
 ```json
 {
+  "key": "new-checkout-flow",
+  "name": "New Checkout Flow",
+  "description": "Enable the new checkout flow for users",
+  "enabled": true,
+  "defaultValue": false,
   "rules": [
     {
-      "type": "role",
+      "type": "user_id",
       "conditions": [
         {
-          "field": "role",
+          "field": "userId",
           "operator": "equals",
-          "value": "admin"
+          "value": "user123"
         }
       ],
       "value": true,
@@ -268,9 +219,9 @@ The system supports various rule types and conditions:
       "type": "percentage",
       "conditions": [
         {
-          "field": "userId",
-          "operator": "in",
-          "value": ["1", "2", "3", "4", "5"]
+          "field": "percentage",
+          "operator": "less_than",
+          "value": "25"
         }
       ],
       "value": true,
@@ -280,49 +231,36 @@ The system supports various rule types and conditions:
 }
 ```
 
-## Configuration ⚙️
+## Database Schema 🗄️
 
-The application uses environment variables for configuration:
+### Core Tables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `PORT` | Server port | `3000` |
-| `NODE_ENV` | Environment | `development` |
-| `JWT_SECRET` | JWT signing secret | Required |
-| `JWT_EXPIRES_IN` | JWT expiration | `24h` |
-| `DATABASE_URL` | Database connection | `mongodb://localhost:27017/launch-darkly-lite` |
-| `DEFAULT_FLAG_TTL` | Default flag TTL in seconds | `3600` |
-| `MAX_FLAGS_PER_USER` | Maximum flags per user | `100` |
-| `BCRYPT_ROUNDS` | Password hashing rounds | `12` |
-| `CORS_ORIGIN` | CORS allowed origin | `http://localhost:3000` |
-| `LOG_LEVEL` | Logging level | `info` |
+1. **users**
+   - id (UUID, primary key)
+   - email (unique)
+   - password (hashed with bcrypt)
+   - name, role (admin/user)
+   - timestamps
 
-## Development 🛠️
+2. **feature_flags**
+   - id (UUID, primary key)
+   - key (unique), name, description
+   - enabled, defaultValue
+   - createdBy (FK to users)
+   - timestamps, expiresAt
 
-### Available Scripts
+3. **flag_rules**
+   - id (UUID, primary key)
+   - type, value, priority
+   - featureFlagId (FK to feature_flags)
 
-```bash
-# Development
-npm run dev          # Start development server with hot reload
-npm run build        # Build TypeScript to JavaScript
-npm run start        # Start production server
-npm run clean        # Clean build directory
-```
+4. **flag_conditions**
+   - id (UUID, primary key)
+   - field, operator, value
+   - ruleId (FK to flag_rules)
 
-### Project Structure
-
-```
-src/
-├── config/          # Configuration management
-├── controllers/     # Request handlers
-├── middleware/      # Express middleware
-├── models/          # Data models (future)
-├── routes/          # API routes
-├── services/        # Business logic
-├── types/           # TypeScript type definitions
-├── utils/           # Utility functions
-└── index.ts         # Application entry point
-```
+### Migration Management
+The project uses TypeORM migrations for database schema management. See `DATABASE_OPERATIONS.md` for detailed migration workflows.
 
 ## Security 🔒
 
@@ -330,8 +268,9 @@ src/
 - **Password Hashing**: bcrypt with configurable rounds
 - **Security Headers**: Helmet.js for security headers
 - **CORS Protection**: Configurable CORS settings
-- **Input Validation**: Effect.js Schema validation
+- **Input Validation**: Zod schemas for type-safe validation
 - **Role-based Access**: Admin and user role system
+- **SQL Injection Protection**: TypeORM query builder
 
 ## Default Credentials 🔑
 
@@ -340,22 +279,73 @@ For development purposes, the system includes a default admin user:
 - **Email**: `admin@example.com`
 - **Password**: `password123`
 
-⚠️ **Important**: Change these credentials in production!
+⚠️ **Change these credentials in production!**
+
+## Docker Support 🐳
+
+```bash
+# Start PostgreSQL with Docker Compose
+docker-compose up -d postgres
+
+# Or start the entire stack (when available)
+docker-compose up -d
+```
+
+## Effect.js Integration ⚡
+
+This project heavily uses Effect.js for:
+
+- **Type-safe Error Handling**: Composable error types
+- **Functional Programming**: Pure functions and immutable data
+- **Dependency Injection**: Context-based DI system
+- **Pipeline Operations**: Pipe and composition patterns
+- **Async Operations**: Effect-based async handling
+
+### Example Effect.js Usage
+
+```typescript
+// Use case with Effect.js
+export const createFeatureFlagUseCase = (
+  dto: CreateFeatureFlagRequestDto,
+  featureFlagRepository: FeatureFlagRepository
+): Effect.Effect<FeatureFlagResponseDto, Error> =>
+  pipe(
+    validateCreateFeatureFlagRequest(dto),
+    Effect.flatMap((validatedDto) => featureFlagRepository.create(validatedDto)),
+    Effect.map((flag) => toFeatureFlagResponseDto(flag))
+  );
+```
+
+## Development Guidelines 📋
+
+### Code Organization
+- Follow clean architecture principles
+- Use Effect.js for all business logic
+- Implement repository pattern for data access
+- Use DTOs for data transfer and validation
+- Keep controllers thin (only handle HTTP concerns)
+
+### Testing Strategy
+- Unit tests for use cases and domain logic
+- Integration tests for repositories
+- E2E tests for API endpoints
+- Mock dependencies using Effect.js context
 
 ## Contributing 🤝
 
 1. Fork the repository
 2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+3. Follow the existing code style and architecture
+4. Add tests for new functionality
+5. Update documentation as needed
+6. Submit a pull request
 
 ## License 📄
 
 This project is licensed under the ISC License.
 
-## Acknowledgments 🙏
+## Related Documentation 📖
 
-- Built with [Effect.js](https://effect.website/) for functional programming
-- Authentication powered by [Passport.js](http://www.passportjs.org/)
-- Security enhanced with [Helmet.js](https://helmetjs.github.io/) 
+- [API Documentation](./API_DOCUMENTATION.md) - Comprehensive API reference
+- [Database Operations](./DATABASE_OPERATIONS.md) - Database management guide
+- [OpenAPI Specification](./openapi.yaml) - Machine-readable API spec 

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { Effect, pipe } from 'effect';
-import type { CreateFlagRequest, UpdateFlagRequest, EvaluateFlagRequest, FeatureFlag as FeatureFlagType } from '../types/Api.types';
+import type { CreateFlagRequest, FeatureFlag as FeatureFlagType } from '../types/Api.types';
 import { 
   evaluateFlag, 
   getAllFlags, 
