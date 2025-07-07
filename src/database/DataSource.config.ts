@@ -17,10 +17,10 @@ export const AppDataSource = new DataSource({
   synchronize: config.nodeEnv === "development", // Only in development
   logging: config.nodeEnv === "development",
   entities: [UserModel, FlagModel, FeatureFlagModel, FlagRuleModel, FlagConditionModel],
-  migrations: config.nodeEnv === "development" 
-    ? ["src/database/migrations/*.ts"]
-    : ["dist/database/migrations/*.js"],
-  subscribers: config.nodeEnv === "development"
-    ? ["src/database/subscribers/*.ts"]
-    : ["dist/database/subscribers/*.js"],
+  // migrations: config.nodeEnv === "development" 
+  //   ? ["src/database/migrations/*.ts"]
+  //   : ["dist/database/migrations/*.js"],
+  // subscribers: config.nodeEnv === "development"
+  //   ? ["src/database/subscribers/*.ts"]
+  //   : ["dist/database/subscribers/*.js"],
 }); 

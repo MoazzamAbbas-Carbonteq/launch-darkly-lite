@@ -35,6 +35,17 @@ const validateCreateFlagRequest = (body: any): CreateFlagRequest => {
   };
 };
 
+// Helper function to get error message
+const getErrorMessage = (error: unknown): string => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (typeof error === 'string') {
+    return error;
+  }
+  return 'Unknown error occurred';
+};
+
 // Get all feature flags
 export const getFlags = async (req: Request, res: Response): Promise<void> => {
   const program = pipe(
@@ -48,13 +59,13 @@ export const getFlags = async (req: Request, res: Response): Promise<void> => {
     Effect.catchAll(error => {
       res.status(500).json({
         success: false,
-        error: error.message || 'Failed to retrieve feature flags',
+        error: getErrorMessage(error),
       });
       return Effect.succeed(void 0);
     })
   );
 
-  Effect.runPromise(program);
+  await Effect.runPromise(program);
 };
 
 // Get feature flag by key
@@ -70,22 +81,23 @@ export const getFlag = async (req: Request, res: Response): Promise<void> => {
       });
     }),
     Effect.catchAll(error => {
-      if (error.message.includes('not found')) {
+      const errorMessage = getErrorMessage(error);
+      if (errorMessage.includes('not found')) {
         res.status(404).json({
           success: false,
-          error: error.message,
+          error: errorMessage,
         });
       } else {
         res.status(500).json({
           success: false,
-          error: error.message || 'Failed to retrieve feature flag',
+          error: errorMessage,
         });
       }
       return Effect.succeed(void 0);
     })
   );
 
-  Effect.runPromise(program);
+  await Effect.runPromise(program);
 };
 
 // Create new feature flag
@@ -99,6 +111,7 @@ export const createNewFlag = async (req: Request, res: Response): Promise<void> 
     // Create the flag
     Effect.flatMap(flagData => createFlag({
       ...flagData,
+      description: flagData.description || '', // Ensure description is always a string
       rules: (flagData.rules || []).map((rule, index) => ({
         ...rule,
         id: `rule_${Date.now()}_${index}`
@@ -113,27 +126,28 @@ export const createNewFlag = async (req: Request, res: Response): Promise<void> 
       });
     }),
     Effect.catchAll(error => {
-      if (error.message.includes('already exists')) {
+      const errorMessage = getErrorMessage(error);
+      if (errorMessage.includes('already exists')) {
         res.status(409).json({
           success: false,
-          error: error.message,
+          error: errorMessage,
         });
-      } else if (error.message.includes('Invalid request')) {
+      } else if (errorMessage.includes('Invalid request')) {
         res.status(400).json({
           success: false,
-          error: error.message,
+          error: errorMessage,
         });
       } else {
         res.status(500).json({
           success: false,
-          error: error.message || 'Failed to create feature flag',
+          error: errorMessage,
         });
       }
       return Effect.succeed(void 0);
     })
   );
 
-  Effect.runPromise(program);
+  await Effect.runPromise(program);
 };
 
 // Update feature flag
@@ -165,22 +179,23 @@ export const updateExistingFlag = async (req: Request, res: Response): Promise<v
       });
     }),
     Effect.catchAll(error => {
-      if (error.message.includes('not found')) {
+      const errorMessage = getErrorMessage(error);
+      if (errorMessage.includes('not found')) {
         res.status(404).json({
           success: false,
-          error: error.message,
+          error: errorMessage,
         });
       } else {
         res.status(500).json({
           success: false,
-          error: error.message || 'Failed to update feature flag',
+          error: errorMessage,
         });
       }
       return Effect.succeed(void 0);
     })
   );
 
-  Effect.runPromise(program);
+  await Effect.runPromise(program);
 };
 
 // Delete feature flag
@@ -196,66 +211,60 @@ export const deleteExistingFlag = async (req: Request, res: Response): Promise<v
       });
     }),
     Effect.catchAll(error => {
-      if (error.message.includes('not found')) {
+      const errorMessage = getErrorMessage(error);
+      if (errorMessage.includes('not found')) {
         res.status(404).json({
           success: false,
-          error: error.message,
+          error: errorMessage,
         });
       } else {
         res.status(500).json({
           success: false,
-          error: error.message || 'Failed to delete feature flag',
+          error: errorMessage,
         });
       }
       return Effect.succeed(void 0);
     })
   );
 
-  Effect.runPromise(program);
+  await Effect.runPromise(program);
 };
 
 // Evaluate feature flag
 export const evaluateFeatureFlag = async (req: Request, res: Response): Promise<void> => {
   const { key } = req.params;
-  const requestData: EvaluateFlagRequest = {
-    flagKey: key,
-    userId: req.body.userId,
-    userEmail: req.body.userEmail,
-    userRole: req.body.userRole,
-    attributes: req.body.attributes,
-  };
+  const evaluationData = req.body;
 
   const program = pipe(
-    evaluateFlag(requestData),
+    evaluateFlag(key, evaluationData),
     Effect.map(result => {
       res.status(200).json({
         success: true,
-        data: {
-          flagKey: key,
-          enabled: result,
-        },
+        data: result,
+        message: 'Feature flag evaluated successfully',
       });
     }),
     Effect.catchAll(error => {
-      if (error.message.includes('not found')) {
+      const errorMessage = getErrorMessage(error);
+      if (errorMessage.includes('not found')) {
         res.status(404).json({
           success: false,
-          error: error.message,
+          error: errorMessage,
         });
-      } else if (error.message.includes('Invalid request')) {
+      } else if (errorMessage.includes('Invalid request')) {
         res.status(400).json({
           success: false,
-          error: error.message,
+          error: errorMessage,
         });
       } else {
         res.status(500).json({
           success: false,
-          error: error.message || 'Failed to evaluate feature flag',
+          error: errorMessage,
         });
       }
       return Effect.succeed(void 0);
     })
   );
 
-  Effect.runPromise(program);
+  await Effect.runPromise(program);
 }; 

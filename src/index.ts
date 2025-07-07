@@ -198,8 +198,5 @@ const program = pipe(
   })
 );
 
-// Start the application
-Effect.runPromise(program).catch((error) => {
-  console.error('❌ Unhandled error starting application:', error);
-  process.exit(1);
-}); 
+// Start the application - using proper Effect error handling
+Effect.runPromise(program); 

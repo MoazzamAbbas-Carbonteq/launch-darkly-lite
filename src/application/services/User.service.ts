@@ -1,49 +1,53 @@
 import { Effect, pipe } from 'effect';
 import { UserRepository } from '../../domain/repositories/User.repository';
-import { validateCreateUserRequest, toResponseDto, CreateUserRequestDto, UserResponseDto } from '../dto/User.dto';
-import { createUserUseCaseWithRepo, CreateUserRequest } from '../use-cases/user/CreateUser.use-case';
+import { CreateUserRequestDto, UpdateUserRequestDto, UserResponseDto, toUserResponseDto, validateCreateUserRequest, validateUpdateUserRequest } from '../dto/User.dto';
+import { getUserUseCaseWithRepo } from '../use-cases/user/GetUser.use-case';
+import { updateUserUseCaseWithRepo } from '../use-cases/user/UpdateUser.use-case';
+import { deleteUserUseCaseWithRepo } from '../use-cases/user/DeleteUser.use-case';
 
-// Type for service
-export type UserService = ReturnType<typeof makeUserService>;
+// Service interface
+export interface UserService {
+  createUser: (dto: CreateUserRequestDto) => Effect.Effect<UserResponseDto, Error>;
+  getUser: (id: string) => Effect.Effect<UserResponseDto | null, Error>;
+  updateUser: (id: string, dto: UpdateUserRequestDto) => Effect.Effect<UserResponseDto, Error>;
+  deleteUser: (id: string) => Effect.Effect<boolean, Error>;
+  getUserByEmail: (email: string) => Effect.Effect<UserResponseDto | null, Error>;
+}
 
-// Functional service factory
-export const makeUserService = (userRepository: UserRepository) => ({
-  createUser: (requestDto: CreateUserRequestDto): Effect.Effect<UserResponseDto, Error> =>
+// Functional service factory - RECOMMENDED APPROACH
+export const makeUserService = (userRepository: UserRepository): UserService => ({
+  createUser: (dto: CreateUserRequestDto) =>
     pipe(
-      // Validate DTO
-      validateCreateUserRequest(requestDto),
-      // Transform to use case request
-      Effect.map((validatedDto) => ({
-        email: validatedDto.email,
-        password: validatedDto.password,
-        name: validatedDto.name,
-        role: validatedDto.role
-      })),
-      // Execute use case
-      Effect.flatMap((useCaseRequest) => 
-        createUserUseCaseWithRepo(useCaseRequest, userRepository)
+      validateCreateUserRequest(dto),
+      Effect.flatMap((validatedDto) =>
+        userRepository.create({
+          email: validatedDto.email,
+          password: validatedDto.password,
+          name: validatedDto.name,
+          role: validatedDto.role,
+        })
       ),
-      // Transform to response DTO
-      Effect.map((response) => toResponseDto(response.user))
-    )
-});
-
-// Alternative functional service (without factory)
-export const createUserService = (requestDto: CreateUserRequestDto, userRepository: UserRepository): Effect.Effect<UserResponseDto, Error> =>
-  pipe(
-    // Validate DTO
-    validateCreateUserRequest(requestDto),
-    // Transform to use case request
-    Effect.map((validatedDto) => ({
-      email: validatedDto.email,
-      password: validatedDto.password,
-      name: validatedDto.name,
-      role: validatedDto.role
-    })),
-    // Execute use case
-    Effect.flatMap((useCaseRequest) => 
-      createUserUseCaseWithRepo(useCaseRequest, userRepository)
+      Effect.map((user) => toUserResponseDto(user))
     ),
-    // Transform to response DTO
-    Effect.map((response) => toResponseDto(response.user))
-  ); 
+
+  getUser: (id: string) =>
+    pipe(
+      getUserUseCaseWithRepo(id, userRepository),
+      Effect.map((user) => user ? toUserResponseDto(user) : null)
+    ),
+
+  updateUser: (id: string, dto: UpdateUserRequestDto) =>
+    pipe(
+      updateUserUseCaseWithRepo(id, dto, userRepository),
+      Effect.map((user) => toUserResponseDto(user))
+    ),
+
+  deleteUser: (id: string) =>
+    deleteUserUseCaseWithRepo(id, userRepository),
+
+  getUserByEmail: (email: string) =>
+    pipe(
+      userRepository.findByEmail(email),
+      Effect.map((user) => user ? toUserResponseDto(user) : null)
+    )
+}); 

@@ -3,45 +3,34 @@ import { z } from 'zod';
 import { UserEntity, validateEmail, validateName, validateRole } from '../../domain/entities/User.entity';
 import { UserRole } from '../../types/Api.types';
 
-// Zod Schemas for additional validation
+// Request DTOs with Zod validation
 export const CreateUserRequestSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(100, 'Name must be less than 100 characters'),
   email: z.string().email('Invalid email format'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  role: z.nativeEnum(UserRole).optional()
+  role: z.nativeEnum(UserRole).default(UserRole.USER),
 });
 
 export const UpdateUserRequestSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(100, 'Name must be less than 100 characters').optional(),
   email: z.string().email('Invalid email format').optional(),
-  name: z.string().min(2, 'Name must be at least 2 characters').optional(),
-  role: z.nativeEnum(UserRole).optional()
+  role: z.nativeEnum(UserRole).optional(),
 });
 
-// Request DTOs
-export interface CreateUserRequestDto {
-  email: string;
-  password: string;
-  name: string;
-  role?: UserRole;
-}
-
-export interface UpdateUserRequestDto {
-  email?: string;
-  name?: string;
-  role?: UserRole;
-}
+export type CreateUserRequestDto = z.infer<typeof CreateUserRequestSchema>;
+export type UpdateUserRequestDto = z.infer<typeof UpdateUserRequestSchema>;
 
 // Response DTOs
 export interface UserResponseDto {
   id: string;
-  email: string;
   name: string;
+  email: string;
   role: UserRole;
   createdAt: Date;
   updatedAt: Date;
 }
 
-// DTO Validation Functions
+// DTO Validation Functions with Effect and Zod
 export const validateCreateUserRequest = (dto: CreateUserRequestDto): Effect.Effect<CreateUserRequestDto, Error> =>
   pipe(
     // First validate with Zod
@@ -98,7 +87,7 @@ export const validateUpdateUserRequest = (dto: UpdateUserRequestDto): Effect.Eff
   );
 
 // DTO Transformation Functions
-export const toResponseDto = (entity: UserEntity): UserResponseDto => ({
+export const toUserResponseDto = (entity: UserEntity): UserResponseDto => ({
   id: entity.id,
   email: entity.email,
   name: entity.name,
@@ -107,5 +96,7 @@ export const toResponseDto = (entity: UserEntity): UserResponseDto => ({
   updatedAt: entity.updatedAt,
 });
 
+export const toResponseDto = (entity: UserEntity): UserResponseDto => toUserResponseDto(entity);
+
 export const toResponseDtoArray = (entities: UserEntity[]): UserResponseDto[] =>
-  entities.map(entity => toResponseDto(entity)); 
+  entities.map(entity => toUserResponseDto(entity)); 

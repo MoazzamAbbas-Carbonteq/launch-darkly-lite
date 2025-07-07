@@ -1,7 +1,6 @@
 import { Effect, pipe } from 'effect';
 import bcryptjs from 'bcryptjs';
 import { UserRepository } from '../../../domain/repositories/User.repository';
-import { createUserEntityWithValidation } from '../../../domain/entities/User.entity';
 import { UserRole } from '../../../types/Api.types';
 import { config } from '../../../config/Server.config';
 
