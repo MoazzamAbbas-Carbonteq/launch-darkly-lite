@@ -1,8 +1,8 @@
 import { Repository } from "typeorm";
-import { Effect } from "effect";
-import { UserRepository, CreateUserData, UpdateUserData } from "../../domain/repositories/User.repository";
-import { UserEntity, createUserEntityWithValidation } from "../../domain/entities/User.entity";
-import { UserModel } from "../../models/User.model";
+import { Effect, pipe } from "effect";
+import { UserRepository, CreateUserData, UpdateUserData } from "@domain/repositories/User.repository";
+import { UserEntity, createUserEntityWithValidation } from "@domain/entities/User.entity";
+import { UserModel } from "../models/User.model";
 
 // Helper function for domain entity conversion with validation
 const toDomainEntityWithValidation = (model: UserModel): Effect.Effect<UserEntity, Error> =>

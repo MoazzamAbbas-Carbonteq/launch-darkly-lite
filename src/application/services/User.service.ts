@@ -1,5 +1,5 @@
 import { Effect, pipe } from 'effect';
-import { UserRepository } from '../../domain/repositories/User.repository';
+import { UserRepository } from '@domain/repositories/User.repository';
 import { CreateUserRequestDto, UpdateUserRequestDto, UserResponseDto, toUserResponseDto, validateCreateUserRequest, validateUpdateUserRequest } from '../dto/User.dto';
 import { getUserUseCaseWithRepo } from '../use-cases/user/GetUser.use-case';
 import { updateUserUseCaseWithRepo } from '../use-cases/user/UpdateUser.use-case';

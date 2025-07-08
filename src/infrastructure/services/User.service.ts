@@ -1,6 +1,6 @@
 import { Effect, pipe } from 'effect';
-import { runWithUserService, getUserService as getUserServiceFromContext } from '../application/context/AppContext';
-import { CreateUserRequestDto } from '../application/dto/User.dto';
+import { runWithUserService, getUserService as getUserServiceFromContext } from '@application/context/AppContext';
+import { CreateUserRequestDto } from '@application/dto/User.dto';
 
 // Pure service functions that use the application layer through context
 export const createUser = (requestDto: CreateUserRequestDto) =>

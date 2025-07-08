@@ -1,14 +1,12 @@
 import { Request, Response } from 'express';
 import { Effect, pipe } from 'effect';
 import type { CreateFlagRequest, FeatureFlag as FeatureFlagType } from '../types/Api.types';
-import { 
-  evaluateFlag, 
-  getAllFlags, 
-  getFlagByKey, 
-  createFlag, 
-  updateFlag, 
-  deleteFlag 
-} from '../services/FeatureFlag.service';
+import { getAllFlags } from '@infrastructure/services/FeatureFlag.service';
+import { getFlagByKey } from '@infrastructure/services/FeatureFlag.service';
+import { createFlag } from '@infrastructure/services/FeatureFlag.service';
+import { updateFlag } from '@infrastructure/services/FeatureFlag.service';
+import { deleteFlag } from '@infrastructure/services/FeatureFlag.service';
+import { evaluateFlag } from '@infrastructure/services/FeatureFlag.service';
 
 // Basic validation function
 const validateCreateFlagRequest = (body: any): CreateFlagRequest => {

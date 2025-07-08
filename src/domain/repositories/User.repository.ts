@@ -1,6 +1,6 @@
 import { Effect } from "effect";
 import { UserEntity } from "../entities/User.entity";
-import { UserRole } from "../../types/Api.types";
+import { UserRole } from "@infrastructure/web/types/Api.types";
 
 export interface CreateUserData {
   email: string;

@@ -1,8 +1,8 @@
 import { Effect, pipe } from 'effect';
 import bcryptjs from 'bcryptjs';
-import { UserRepository } from '../../../domain/repositories/User.repository';
-import { UserRole } from '../../../types/Api.types';
-import { config } from '../../../config/Server.config';
+import { UserRepository } from '@domain/repositories/User.repository';
+import { UserRole } from '@infrastructure/web/types/Api.types';
+import { config } from '@infrastructure/web/config/Server.config';
 
 // Request and Response types
 export interface CreateUserRequest {

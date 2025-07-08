@@ -1,6 +1,6 @@
 import { Effect, pipe } from 'effect';
-import { runWithFeatureFlagService, getFeatureFlagService as getFeatureFlagServiceFromContext } from '../application/context/AppContext';
-import { CreateFeatureFlagRequestDto, UpdateFeatureFlagRequestDto, EvaluationRequestDto } from '../application/dto/FeatureFlag.dto';
+import { runWithFeatureFlagService, getFeatureFlagService as getFeatureFlagServiceFromContext } from '@application/context/AppContext';
+import { CreateFeatureFlagRequestDto, UpdateFeatureFlagRequestDto, EvaluationRequestDto } from '@application/dto/FeatureFlag.dto';
 
 // Pure service functions that use the application layer through context
 export const createFlag = (requestDto: CreateFeatureFlagRequestDto) =>

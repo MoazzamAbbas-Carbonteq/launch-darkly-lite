@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from "typeorm";
-import { ConditionOperator } from "../types/Api.types";
+import { ConditionOperator } from "@infrastructure/web/types/Api.types";
 
 @Entity("flag_conditions")
 export class FlagConditionModel {

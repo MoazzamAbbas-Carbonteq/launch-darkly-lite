@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from "typeorm";
-import { UserRole } from "../types/Api.types";
+import { UserRole } from "@infrastructure/web/types/Api.types";
 
 @Entity("users")
 export class UserModel {
