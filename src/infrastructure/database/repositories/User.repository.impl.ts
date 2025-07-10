@@ -1,6 +1,6 @@
 import { Repository } from "typeorm";
 import { Effect, pipe } from "effect";
-import { UserRepository, CreateUserData, UpdateUserData } from "@domain/repositories/User.repository";
+import { UserRepository, CreateUserData, UpdateUserData, UserAuthData } from "@domain/repositories/User.repository";
 import { UserEntity, createUserEntityWithValidation } from "@domain/entities/User.entity";
 import { UserModel } from "../models/User.model";
 
@@ -14,6 +14,17 @@ const toDomainEntityWithValidation = (model: UserModel): Effect.Effect<UserEntit
     model.createdAt,
     model.updatedAt
   );
+
+// Helper function for auth data conversion (includes password)
+const toAuthData = (model: UserModel): UserAuthData => ({
+  id: model.id,
+  email: model.email,
+  password: model.password,
+  name: model.name,
+  role: model.role,
+  createdAt: model.createdAt,
+  updatedAt: model.updatedAt,
+});
 
 // Repository implementation factory function
 export const createUserRepositoryImpl = (repository: Repository<UserModel>): UserRepository => ({
@@ -42,6 +53,15 @@ export const createUserRepositoryImpl = (repository: Repository<UserModel>): Use
         user ? toDomainEntityWithValidation(user).pipe(Effect.map(entity => entity)) : Effect.succeed(null)
       )
     ),
+
+  findByEmailWithPassword: (email: string) =>
+    Effect.tryPromise({
+      try: async () => {
+        const user = await repository.findOne({ where: { email } });
+        return user ? toAuthData(user) : null;
+      },
+      catch: (e) => new Error(`Failed to find user by email with password: ${String(e)}`),
+    }),
 
   create: (userData: CreateUserData) =>
     Effect.tryPromise({
