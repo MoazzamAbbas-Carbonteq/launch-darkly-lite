@@ -5,7 +5,7 @@ import {
   UserRole,
   FlagRule,
   FlagCondition 
-} from '../../types/Api.types';
+} from '@infrastructure/web/types/Api.types';
 
 export interface EvaluationContext {
   userId?: string;

@@ -1,8 +1,8 @@
 import { Repository } from "typeorm";
-import { Effect } from "effect";
-import { FeatureFlagRepository, CreateFeatureFlagData, UpdateFeatureFlagData } from "../../domain/repositories/FeatureFlag.repository";
-import { FeatureFlagEntity, createFeatureFlagEntityWithValidation } from "../../domain/entities/FeatureFlag.entity";
-import { FeatureFlagModel } from "../../models/FeatureFlag.model";
+import { Effect, pipe } from "effect";
+import { FeatureFlagRepository, CreateFeatureFlagData, UpdateFeatureFlagData } from "@domain/repositories/FeatureFlag.repository";
+import { FeatureFlagEntity, createFeatureFlagEntityWithValidation } from "@domain/entities/FeatureFlag.entity";
+import { FeatureFlagModel } from "../models/FeatureFlag.model";
 
 // Helper function for domain entity conversion with validation
 const toDomainEntityWithValidation = (model: FeatureFlagModel): Effect.Effect<FeatureFlagEntity, Error> =>
@@ -56,8 +56,8 @@ export const createFeatureFlagRepositoryImpl = (repository: Repository<FeatureFl
       },
       catch: (e) => new Error(`Failed to find all feature flags: ${String(e)}`),
     }).pipe(
-      Effect.flatMap((flags) => 
-        Effect.all(flags.map(flag => toDomainEntityWithValidation(flag)))
+      Effect.flatMap((flags: FeatureFlagModel[]) => 
+        Effect.all(flags.map((flag: FeatureFlagModel) => toDomainEntityWithValidation(flag)))
       )
     ),
 

@@ -1,7 +1,7 @@
 import { Effect, pipe } from 'effect';
 import { z } from 'zod';
-import { UserEntity, validateEmail, validateName, validateRole } from '../../domain/entities/User.entity';
-import { UserRole } from '../../types/Api.types';
+import { UserEntity, validateEmail, validateName, validateRole } from '@domain/entities/User.entity';
+import { UserRole } from '@infrastructure/web/types/Api.types';
 
 // Request DTOs with Zod validation
 export const CreateUserRequestSchema = z.object({

@@ -1,5 +1,5 @@
 import { Effect, pipe } from 'effect';
-import { FeatureFlagRepository } from '../../../domain/repositories/FeatureFlag.repository';
+import { FeatureFlagRepository } from '@domain/repositories/FeatureFlag.repository';
 import { UpdateFeatureFlagRequestDto, FeatureFlagResponseDto, toFeatureFlagResponseDto, validateUpdateFeatureFlagRequest } from '../../dto/FeatureFlag.dto';
 
 // Use case implementation with pipe/map approach

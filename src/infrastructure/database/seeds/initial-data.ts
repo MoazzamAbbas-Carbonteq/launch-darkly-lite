@@ -1,9 +1,9 @@
 import { AppDataSource } from "../DataSource.config";
-import { UserModel } from "../../models/User.model";
-import { FeatureFlagModel } from "../../models/FeatureFlag.model";
-import { FlagRuleModel } from "../../models/FlagRule.model";
-import { FlagConditionModel } from "../../models/FlagCondition.model";
-import { UserRole, RuleType, ConditionOperator } from "../../types/Api.types";
+import { UserModel } from "../models/User.model";
+import { FeatureFlagModel } from "../models/FeatureFlag.model";
+import { FlagRuleModel } from "../models/FlagRule.model";
+import { FlagConditionModel } from "../models/FlagCondition.model";
+import { UserRole, RuleType, ConditionOperator } from "@infrastructure/web/types/Api.types";
 import bcrypt from "bcryptjs";
 
 export async function seedInitialData() {

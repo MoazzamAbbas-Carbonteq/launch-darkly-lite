@@ -1,5 +1,5 @@
 import { Effect, pipe } from 'effect';
-import { FeatureFlagRepository } from '../../domain/repositories/FeatureFlag.repository';
+import { FeatureFlagRepository } from '@domain/repositories/FeatureFlag.repository';
 import { FeatureFlagResponseDto, CreateFeatureFlagRequestDto, UpdateFeatureFlagRequestDto, EvaluationRequestDto, EvaluationResponseDto, toFeatureFlagResponseDto } from '../dto/FeatureFlag.dto';
 import { createFeatureFlagUseCase } from '../use-cases/feature-flag/CreateFeatureFlag.use-case';
 import { updateFeatureFlagUseCase } from '../use-cases/feature-flag/UpdateFeatureFlag.use-case';

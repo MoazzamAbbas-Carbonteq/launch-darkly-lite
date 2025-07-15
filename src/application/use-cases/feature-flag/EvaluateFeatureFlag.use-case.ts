@@ -1,7 +1,7 @@
 import { Effect, pipe } from 'effect';
-import { FeatureFlagRepository } from '../../../domain/repositories/FeatureFlag.repository';
+import { FeatureFlagRepository } from '@domain/repositories/FeatureFlag.repository';
 import { EvaluationRequestDto, EvaluationResponseDto, toEvaluationResponseDto, validateEvaluationRequest } from '../../dto/FeatureFlag.dto';
-import { evaluate } from '../../../domain/entities/FeatureFlag.entity';
+import { evaluate } from '@domain/entities/FeatureFlag.entity';
 
 // Use case implementation with pipe/map approach
 export const evaluateFeatureFlagUseCase = (

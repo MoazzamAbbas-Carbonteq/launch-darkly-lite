@@ -1,6 +1,6 @@
 import { Effect } from "effect";
 import { FeatureFlagEntity } from "../entities/FeatureFlag.entity";
-import { FlagRule } from "../../types/Api.types";
+import { FlagRule } from "@infrastructure/web/types/Api.types";
 
 export interface CreateFeatureFlagData {
   key: string;

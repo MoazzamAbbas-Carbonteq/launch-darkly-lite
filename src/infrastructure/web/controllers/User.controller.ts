@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { Effect, pipe } from 'effect';
-import { CreateUserRequestDto } from '../application/dto/User.dto';
-import { runWithUserService, getUserService } from '../application/context/AppContext';
+import { CreateUserRequestDto } from '@application/dto/User.dto';
+import { runWithUserService, getUserService } from '@application/context/AppContext';
 
 // Helper function to get error message
 const getErrorMessage = (error: unknown): string => {

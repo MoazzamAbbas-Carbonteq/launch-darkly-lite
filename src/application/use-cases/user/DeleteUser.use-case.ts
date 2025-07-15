@@ -1,5 +1,5 @@
 import { Effect, pipe } from 'effect';
-import { UserRepository } from '../../../domain/repositories/User.repository';
+import { UserRepository } from '@domain/repositories/User.repository';
 
 // Use case implementation with pipe/map approach
 export const deleteUserUseCaseWithRepo = (

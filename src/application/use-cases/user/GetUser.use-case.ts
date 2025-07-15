@@ -1,6 +1,6 @@
 import { Effect, pipe } from 'effect';
-import { UserRepository } from '../../../domain/repositories/User.repository';
-import { UserEntity } from '../../../domain/entities/User.entity';
+import { UserRepository } from '@domain/repositories/User.repository';
+import { UserEntity } from '@domain/entities/User.entity';
 
 // Use case implementation with pipe/map approach
 export const getUserUseCaseWithRepo = (

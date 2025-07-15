@@ -1,11 +1,11 @@
 import { Context, Effect, Layer, pipe } from 'effect';
-import { AppDataSource } from '../../database/DataSource.config';
-import { UserModel } from '../../models/User.model';
-import { FeatureFlagModel } from '../../models/FeatureFlag.model';
-import { UserRepository } from '../../domain/repositories/User.repository';
-import { FeatureFlagRepository } from '../../domain/repositories/FeatureFlag.repository';
-import { createUserRepositoryImpl } from '../../infrastructure/repositories/User.repository.impl';
-import { createFeatureFlagRepositoryImpl } from '../../infrastructure/repositories/FeatureFlag.repository.impl';
+import { AppDataSource } from '@infrastructure/database/DataSource.config';
+import { UserModel } from '@infrastructure/database/models/User.model';
+import { FeatureFlagModel } from '@infrastructure/database/models/FeatureFlag.model';
+import { UserRepository } from '@domain/repositories/User.repository';
+import { FeatureFlagRepository } from '@domain/repositories/FeatureFlag.repository';
+import { createUserRepositoryImpl } from '@infrastructure/database/repositories/User.repository.impl';
+import { createFeatureFlagRepositoryImpl } from '@infrastructure/database/repositories/FeatureFlag.repository.impl';
 import { makeUserService, UserService } from '../services/User.service';
 import { makeFeatureFlagService, FeatureFlagService } from '../services/FeatureFlag.service';
 

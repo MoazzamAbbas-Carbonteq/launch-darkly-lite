@@ -1,11 +1,11 @@
 import "reflect-metadata";
 import { DataSource } from "typeorm";
-import { config } from "../config/Server.config";
-import { UserModel } from "../models/User.model";
-import { FlagModel } from "../models/Flag.model";
-import { FeatureFlagModel } from "../models/FeatureFlag.model";
-import { FlagRuleModel } from "../models/FlagRule.model";
-import { FlagConditionModel } from "../models/FlagCondition.model";
+import { config } from "@infrastructure/web/config/Server.config";
+import { UserModel } from "./models/User.model";
+import { FlagModel } from "./models/Flag.model";
+import { FeatureFlagModel } from "./models/FeatureFlag.model";
+import { FlagRuleModel } from "./models/FlagRule.model";
+import { FlagConditionModel } from "./models/FlagCondition.model";
 
 export const AppDataSource = new DataSource({
   type: "postgres",

@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from "typeorm";
-import { RuleType } from "../types/Api.types";
+import { RuleType } from "@infrastructure/web/types/Api.types";
 
 @Entity("flag_rules")
 export class FlagRuleModel {

@@ -1,7 +1,7 @@
 import { Effect, pipe } from 'effect';
 import { z } from 'zod';
-import { FeatureFlagEntity } from '../../domain/entities/FeatureFlag.entity';
-import { FlagRule } from '../../types/Api.types';
+import { FeatureFlagEntity } from '@domain/entities/FeatureFlag.entity';
+import { FlagRule } from '@infrastructure/web/types/Api.types';
 
 // Zod schemas for validation
 export const CreateFeatureFlagRequestSchema = z.object({

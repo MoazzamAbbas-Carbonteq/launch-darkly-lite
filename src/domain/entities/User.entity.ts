@@ -1,4 +1,4 @@
-import { UserRole } from '../../types/Api.types';
+import { UserRole } from '@infrastructure/web/types/Api.types';
 import { Effect } from 'effect';
 
 // User entity as immutable data structure

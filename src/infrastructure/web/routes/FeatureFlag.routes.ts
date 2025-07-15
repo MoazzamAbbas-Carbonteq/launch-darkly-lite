@@ -1,14 +1,8 @@
 import { Router } from 'express';
-import { 
-  getFlags, 
-  getFlag, 
-  createNewFlag,
-  updateExistingFlag, 
-  deleteExistingFlag, 
-  evaluateFeatureFlag 
-} from '../controllers/FeatureFlag.controller';
+
 import { authenticateJwt, requireRole } from '../middleware/Authentication.middleware';
 import { UserRole } from '../types/Api.types';
+import { createNewFlag, deleteExistingFlag, evaluateFeatureFlag, getFlag, getFlags, updateExistingFlag } from '../controllers/FeatureFlag.controller';
 
 const router = Router();
 

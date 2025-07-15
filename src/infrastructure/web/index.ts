@@ -8,15 +8,15 @@ import swaggerUi from 'swagger-ui-express';
 import path from 'path';
 import { Effect, pipe } from 'effect';
 import { config, Config } from './config/Server.config';
-import { AppDataSource } from './database/DataSource.config';
-import { seedInitialData } from './database/seeds/initial-data';
+import { AppDataSource } from '@infrastructure/database/DataSource.config';
+import { seedInitialData } from '@infrastructure/database/seeds/initial-data';
 import featureFlagRoutes from './routes/FeatureFlag.routes';
 import authRoutes from './routes/Authentication.routes';
 import userRoutes from './routes/User.routes';
 
 // Load OpenAPI specification using require for better CommonJS compatibility
 const YAML = require('yamljs');
-const swaggerDocument = YAML.load(path.join(__dirname, '../openapi.yaml'));
+const swaggerDocument = YAML.load(path.join(__dirname, '../../../openapi.yaml'));
 
 // Initialize Express app
 const app = express();
