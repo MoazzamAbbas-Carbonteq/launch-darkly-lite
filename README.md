@@ -23,24 +23,29 @@ The project follows **Clean Architecture** principles with **Effect.js** for fun
 
 ```
 src/
-├── application/         # Application layer
-│   ├── context/         # Effect.js context and dependency injection
-│   ├── dto/             # Data transfer objects with validation
-│   ├── services/        # Application services
-│   └── use-cases/       # Business use cases
-├── domain/              # Domain layer (business logic)
-│   ├── entities/        # Domain entities with validation
-│   └── repositories/    # Repository interfaces
-├── infrastructure/      # Infrastructure layer
-│   └── repositories/    # Repository implementations
-├── controllers/         # Express controllers (interface adapters)
-├── routes/              # API route definitions
-├── middleware/          # Express middleware
-├── models/              # TypeORM entities
-├── database/            # Database configuration and migrations
-├── types/               # TypeScript type definitions
-├── config/              # Configuration management
-└── index.ts             # Application entry point
+├── application/                # Application layer
+│   ├── context/                # Effect.js context and dependency injection
+│   ├── dto/                    # Data transfer objects with validation
+│   ├── services/               # Application services
+│   └── use-cases/              # Business use cases
+├── domain/                     # Domain layer (business logic)
+│   ├── entities/               # Domain entities with validation
+│   └── repositories/           # Repository interfaces
+├── infrastructure/             # Infrastructure layer
+│   ├── web/                    # Web/API interface adapters
+│   │   ├── controllers/        # Express controllers
+│   │   ├── routes/             # API route definitions
+│   │   ├── middleware/         # Express middleware
+│   │   ├── types/              # TypeScript type definitions
+│   │   ├── config/             # Web server configuration
+│   │   └── index.ts            # Web server entry point
+│   ├── database/               # Database configuration and persistence
+│   │   ├── models/             # TypeORM entities
+│   │   ├── repositories/       # Repository implementations
+│   │   ├── migrations/         # Database migrations
+│   │   ├── seeds/              # Database seed scripts
+│   │   └── DataSource.config.ts# Database connection config
+│   └── services/               # Infrastructure services (e.g., email, external APIs)
 ```
 
 ### Key Architectural Benefits
