@@ -48,7 +48,7 @@ export enum RuleType {
 export interface FlagCondition {
   field: string;
   operator: ConditionOperator;
-  value: string | number | boolean;
+  value: string | number | boolean | (string | number | boolean)[];
 }
 
 export enum ConditionOperator {
